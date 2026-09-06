@@ -1,0 +1,48 @@
+name: Cleanup achievement branches
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete merged achievement branches
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const refs = await github.paginate(
+              github.rest.git.listMatchingRefs,
+              { owner, repo, ref: "heads/achievement/", per_page: 100 }
+            );
+
+            for (const item of refs) {
+              const branch = item.ref.replace("refs/heads/", "");
+              const pullRequests = await github.paginate(
+                github.rest.pulls.list,
+                {
+                  owner,
+                  repo,
+                  state: "closed",
+                  head: `${owner}:${branch}`,
+                  per_page: 100,
+                }
+              );
+
+              if (pullRequests.some((pull) => pull.merged_at)) {
+                await github.rest.git.deleteRef({
+                  owner,
+                  repo,
+                  ref: `heads/${branch}`,
+                });
+                core.info(`Deleted merged achievement branch: ${branch}`);
+              }
+            }

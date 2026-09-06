@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-github-achievement-unlocker"
+version = "1.0.0"
+description = "Bounded GitHub achievement experiments in an isolated repository"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = ["requests>=2.32,<3"]
+
+[tool.setuptools.packages.find]
+include = ["achievement_unlocker*"]
+
